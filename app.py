@@ -36,16 +36,16 @@ def main():
         else:
             st.error("Sube al menos un archivo PDF.")
     
-    st.header("Comprimir PDF")
-    uploaded_file = st.file_uploader("Sube tu PDF para comprimir", type=["pdf"], key="compress")
-    if st.button("Comprimir PDF"):
-        if uploaded_file:
-            compressed_pdf = compress_pdf(uploaded_file)
-            st.success("PDF comprimido correctamente!")
-            with open(compressed_pdf, "rb") as f:
-                st.download_button(label="Descargar PDF comprimido", data=f, file_name="compressed.pdf", mime="application/pdf")
-        else:
-            st.error("Sube un archivo PDF.")
+    # st.header("Comprimir PDF")
+    # uploaded_file = st.file_uploader("Sube tu PDF para comprimir", type=["pdf"], key="compress")
+    # if st.button("Comprimir PDF"):
+    #     if uploaded_file:
+    #         compressed_pdf = compress_pdf(uploaded_file)
+    #         st.success("PDF comprimido correctamente!")
+    #         with open(compressed_pdf, "rb") as f:
+    #             st.download_button(label="Descargar PDF comprimido", data=f, file_name="compressed.pdf", mime="application/pdf")
+    #     else:
+    #         st.error("Sube un archivo PDF.")
     
 if __name__ == "__main__":
     main()
