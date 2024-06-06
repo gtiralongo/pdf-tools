@@ -31,7 +31,8 @@ def main():
         if uploaded_files:
             merged_pdf = merge_pdfs(uploaded_files)
             st.success("PDFs unidos correctamente!")
-            st.download_button(label="Descargar PDF unido", data=open(merged_pdf, "rb"), file_name="merged.pdf", mime="application/pdf")
+            with open(merged_pdf, "rb") as f:
+                st.download_button(label="Descargar PDF unido", data=f, file_name="merged.pdf", mime="application/pdf")
         else:
             st.error("Sube al menos un archivo PDF.")
     
@@ -41,7 +42,8 @@ def main():
         if uploaded_file:
             compressed_pdf = compress_pdf(uploaded_file)
             st.success("PDF comprimido correctamente!")
-            st.download_button(label="Descargar PDF comprimido", data=open(compressed_pdf, "rb"), file_name="compressed.pdf", mime="application/pdf")
+            with open(compressed_pdf, "rb") as f:
+                st.download_button(label="Descargar PDF comprimido", data=f, file_name="compressed.pdf", mime="application/pdf")
         else:
             st.error("Sube un archivo PDF.")
     
