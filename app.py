@@ -1,21 +1,21 @@
 import streamlit as st
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
-import os
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 
 def merge_pdfs(pdf_files):
-    merger = PdfFileMerger()
+    merger = PdfMerger()
     for pdf in pdf_files:
-        merger.append(pdf)
+        reader = PdfReader(pdf)
+        merger.append(reader)
     merged_pdf_path = "merged.pdf"
     with open(merged_pdf_path, "wb") as f:
         merger.write(f)
     return merged_pdf_path
 
 def compress_pdf(pdf_file):
-    reader = PdfFileReader(pdf_file)
-    writer = PdfFileWriter()
-    for i in range(reader.numPages):
-        writer.addPage(reader.getPage(i))
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+    for i in range(len(reader.pages)):
+        writer.add_page(reader.pages[i])
     
     compressed_pdf_path = "compressed.pdf"
     with open(compressed_pdf_path, "wb") as f:
