@@ -59,7 +59,7 @@ def main():
         if st.button("Dividir PDF"):
             if uploaded_file:
                 # Save uploaded file temporarily
-                with open(os.path.join("temp", "input.pdf"), "wb") as temp_file:
+                with open(uploaded_file, "wb") as temp_file:
                     temp_file.write(uploaded_file.read())
 
                 # Split the PDF
