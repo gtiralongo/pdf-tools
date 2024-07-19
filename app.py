@@ -53,24 +53,17 @@ def main():
                 st.error("Sube un archivo PDF.")
 
     with tab3:
-       st.header("Dividir PDF")
+        st.header("Dividir PDF")
         uploaded_file = st.file_uploader("Sube tu PDF para dividir", type=["pdf"])
         pages_per_file = st.number_input("Páginas por archivo dividido", min_value=1, max_value=1000, value=2)
         if st.button("Dividir PDF"):
             if uploaded_file:
-                # Create the temporary directory dynamically (if needed)
-                if not os.path.exists("temp"):
-                    os.makedirs("temp")
-
-                # Construct the temporary file path
-                temp_file_path = os.path.join("temp", uploaded_file.name)
-
-                # Save the uploaded PDF content to the temporary file
-                with open(temp_file_path, "wb") as temp_file:
+                # Save uploaded file temporarily
+                with open(uploaded_file, "wb") as temp_file:
                     temp_file.write(uploaded_file.read())
 
-                # Split the PDF using the temporary file
-                split_pdf(temp_file_path, "split_pdfs", pages_per_file)
+                # Split the PDF
+                split_pdf(os.path.join("temp", "input.pdf"), "split_pdfs", pages_per_file)
 
                 st.success("PDF dividido correctamente! Archivos divididos en la carpeta 'split_pdfs'.")
             else:
