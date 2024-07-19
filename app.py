@@ -23,24 +23,24 @@ def compress_pdf(pdf_file):
         writer.write(f)
     return compressed_pdf_path
 
-def split_pdf(input_pdf_path, output_folder, pages_per_file):
+def split_pdf(input_pdf_path, pages_per_file):
     reader = PdfReader(input_pdf_path)
     total_pages = len(reader.pages)
     
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    
+    split_files = []
     for start_page in range(0, total_pages, pages_per_file):
         writer = PdfWriter()
         end_page = min(start_page + pages_per_file, total_pages)
         for i in range(start_page, end_page):
             writer.add_page(reader.pages[i])
         
-        output_pdf_path = os.path.join(output_folder, f"split_{start_page + 1}_to_{end_page}.pdf")
+        output_pdf_path = f"split_{start_page + 1}_to_{end_page}.pdf"
         with open(output_pdf_path, "wb") as f:
             writer.write(f)
+        
+        split_files.append(output_pdf_path)
     
-    return output_folder
+    return split_files
 
 def main():
     st.title("Herramienta para unir, comprimir y dividir PDFs")
@@ -80,14 +80,13 @@ def main():
                 with open("temp_uploaded.pdf", "wb") as f:
                     f.write(uploaded_file.read())
 
-                output_folder = "split_pdfs"
-                split_pdf("temp_uploaded.pdf", output_folder, pages_per_file)
+                split_files = split_pdf("temp_uploaded.pdf", pages_per_file)
 
-                st.success("PDF dividido correctamente! Archivos divididos en la carpeta 'split_pdfs'.")
+                st.success("PDF dividido correctamente! Descarga los archivos divididos a continuación.")
                 os.remove("temp_uploaded.pdf")  # Limpiar el archivo temporal
 
-                for split_file in os.listdir(output_folder):
-                    with open(os.path.join(output_folder, split_file), "rb") as f:
+                for split_file in split_files:
+                    with open(split_file, "rb") as f:
                         st.download_button(label=f"Descargar {split_file}", data=f, file_name=split_file, mime="application/pdf")
             else:
                 st.error("Sube un archivo PDF.")
