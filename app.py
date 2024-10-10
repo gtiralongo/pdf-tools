@@ -114,13 +114,13 @@ def encrypt_pdf(pdf_file, password):
 
 # Interfaz de usuario
 def main():
-    st.title("🔧 Herramienta PDF Todo-en-Uno")
+    st.title("🔧 Herramienta PDF")
 
     # Pestañas unificadas
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📑 PDFs: Unir, Dividir, Reordenar",
+        "📑 Unir, Dividir, Reordenar",
         "📝 Texto y Marcas de Agua",
-        "🖼️ Convertir entre PDF e Imágenes",
+        "🖼️  PDF a Imágenes ♻",
         "🔒 Protección y Compresión"
     ])
 
