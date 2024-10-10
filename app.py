@@ -2,8 +2,11 @@ import streamlit as st
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import os
 from pdf2image import convert_from_path
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+import pytesseract
+import io
 
+# Funciones existentes
 def merge_pdfs(pdf_files):
     merger = PdfMerger()
     for pdf in pdf_files:
@@ -59,11 +62,77 @@ def images_to_pdf(image_files):
     images[0].save(pdf_path, save_all=True, append_images=images[1:])
     return pdf_path
 
+# Nuevas Funcionalidades
+
+# 1. Marcas de agua
+def add_watermark(pdf_file, watermark_text):
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        page.add_text(watermark_text, 50, 50)  # Ajusta la posición y tamaño según necesites
+        writer.add_page(page)
+
+    watermarked_pdf_path = "watermarked.pdf"
+    with open(watermarked_pdf_path, "wb") as f:
+        writer.write(f)
+
+    return watermarked_pdf_path
+
+# 2. Extraer texto de un PDF (OCR)
+def extract_text_from_pdf(pdf_file):
+    images = convert_from_path(pdf_file)
+    extracted_text = ""
+    for image in images:
+        text = pytesseract.image_to_string(image)
+        extracted_text += text + "\n"
+    return extracted_text
+
+# 3. Cambiar el orden de las páginas del PDF
+def reorder_pages(pdf_file, order):
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+
+    for i in order:
+        writer.add_page(reader.pages[i - 1])
+
+    reordered_pdf_path = "reordered.pdf"
+    with open(reordered_pdf_path, "wb") as f:
+        writer.write(f)
+
+    return reordered_pdf_path
+
+# 4. Protección con contraseña
+def encrypt_pdf(pdf_file, password):
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        writer.add_page(page)
+
+    writer.encrypt(password)
+    encrypted_pdf_path = "encrypted.pdf"
+    with open(encrypted_pdf_path, "wb") as f:
+        writer.write(f)
+
+    return encrypted_pdf_path
+
+# 5. Conversión de PDF a Texto (TXT)
+def pdf_to_text(pdf_file):
+    reader = PdfReader(pdf_file)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
 def main():
-    st.title("Herramienta para unir, comprimir, dividir y convertir PDFs e imágenes")
+    st.title("Herramienta para manipulación avanzada de PDFs")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Unir PDFs", "Comprimir PDF", "Dividir PDF", "PDF a Imágenes", "Imágenes a PDF"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+        ["Unir PDFs", "Comprimir PDF", "Dividir PDF", "PDF a Imágenes", "Imágenes a PDF", "Funciones Extras", "Protección y Encriptado"]
+    )
 
+    # Unir PDFs
     with tab1:
         st.header("Unir PDFs")
         uploaded_files = st.file_uploader("Sube tus PDFs", type=["pdf"], accept_multiple_files=True, key="merge")
@@ -76,6 +145,7 @@ def main():
             else:
                 st.error("Sube al menos un archivo PDF.")
 
+    # Comprimir PDF
     with tab2:
         st.header("Comprimir PDF")
         uploaded_file = st.file_uploader("Sube tu PDF para comprimir", type=["pdf"], key="compress")
@@ -88,6 +158,7 @@ def main():
             else:
                 st.error("Sube un archivo PDF.")
 
+    # Dividir PDF
     with tab3:
         st.header("Dividir PDF")
         uploaded_file = st.file_uploader("Sube tu PDF para dividir", type=["pdf"], key="split")
@@ -100,7 +171,7 @@ def main():
                 split_files = split_pdf("temp_uploaded.pdf", pages_per_file)
 
                 st.success("PDF dividido correctamente! Descarga los archivos divididos a continuación.")
-                os.remove("temp_uploaded.pdf")  # Limpiar el archivo temporal
+                os.remove("temp_uploaded.pdf")
 
                 for split_file in split_files:
                     with open(split_file, "rb") as f:
@@ -108,6 +179,7 @@ def main():
             else:
                 st.error("Sube un archivo PDF.")
 
+    # PDF a Imágenes
     with tab4:
         st.header("Convertir PDF a Imágenes")
         uploaded_file = st.file_uploader("Sube tu PDF para convertir a imágenes", type=["pdf"], key="pdf_to_images")
@@ -125,6 +197,7 @@ def main():
             else:
                 st.error("Sube un archivo PDF.")
 
+    # Imágenes a PDF
     with tab5:
         st.header("Convertir Imágenes a PDF")
         uploaded_images = st.file_uploader("Sube tus imágenes para convertir a PDF", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key="images_to_pdf")
@@ -143,9 +216,75 @@ def main():
                     st.download_button(label="Descargar PDF", data=f, file_name="images_to_pdf.pdf", mime="application/pdf")
                 
                 for img in image_paths:
-                    os.remove(img)  # Eliminar las imágenes temporales
+                    os.remove(img)
             else:
                 st.error("Sube al menos una imagen.")
+
+    # Funciones extras
+    with tab6:
+        st.header("Funciones Extras")
+        
+        # Marcas de agua
+        st.subheader("Agregar marca de agua")
+        uploaded_file = st.file_uploader("Sube tu PDF para agregar marca de agua", type=["pdf"], key="watermark")
+        watermark_text = st.text_input("Texto de la marca de agua")
+        if st.button("Agregar marca de agua"):
+            if uploaded_file and watermark_text:
+                watermarked_pdf = add_watermark(uploaded_file, watermark_text)
+                st.success("Marca de agua añadida correctamente!")
+                with open(watermarked_pdf, "rb") as f:
+                    st.download_button(label="Descargar PDF con marca de agua", data=f, file_name="watermarked.pdf", mime="application/pdf")
+
+        # Extraer texto de PDF (OCR)
+        st.subheader("Extraer texto (OCR)")
+        uploaded_file = st.file_uploader("Sube tu PDF para extraer texto", type=["pdf"], key="extract_text")
+        if st.button("Extraer texto"):
+            if uploaded_file:
+                extracted_text = extract_text_from_pdf(uploaded_file)
+                st.text_area("Texto extraído:", extracted_text)
+                st.download_button(label="Descargar texto", data=extracted_text, file_name="extracted_text.txt", mime="text/plain")
+            else:
+                st.error("Sube un archivo PDF.")
+
+        # Cambiar orden de páginas
+        st.subheader("Cambiar orden de las páginas del PDF")
+        uploaded_file = st.file_uploader("Sube tu PDF para reordenar páginas", type=["pdf"], key="reorder_pages")
+        page_order = st.text_input("Ingresa el nuevo orden de las páginas (ej: 3,1,2)")
+        if st.button("Reordenar páginas"):
+            if uploaded_file and page_order:
+                order = [int(x) for x in page_order.split(",")]
+                reordered_pdf = reorder_pages(uploaded_file, order)
+                st.success("Páginas reordenadas correctamente!")
+                with open(reordered_pdf, "rb") as f:
+                    st.download_button(label="Descargar PDF reordenado", data=f, file_name="reordered.pdf", mime="application/pdf")
+
+    # Protección y encriptado
+    with tab7:
+        st.header("Protección y Encriptado")
+        
+        # Proteger con contraseña
+        st.subheader("Proteger PDF con contraseña")
+        uploaded_file = st.file_uploader("Sube tu PDF para proteger", type=["pdf"], key="encrypt")
+        password = st.text_input("Ingresa la contraseña")
+        if st.button("Proteger PDF"):
+            if uploaded_file and password:
+                encrypted_pdf = encrypt_pdf(uploaded_file, password)
+                st.success("PDF protegido correctamente!")
+                with open(encrypted_pdf, "rb") as f:
+                    st.download_button(label="Descargar PDF protegido", data=f, file_name="encrypted.pdf", mime="application/pdf")
+            else:
+                st.error("Sube un archivo PDF y/o ingresa una contraseña.")
+            
+        # Conversión a TXT
+        st.subheader("Convertir PDF a Texto (TXT)")
+        uploaded_file = st.file_uploader("Sube tu PDF para convertir a texto", type=["pdf"], key="pdf_to_text")
+        if st.button("Convertir a Texto"):
+            if uploaded_file:
+                text_content = pdf_to_text(uploaded_file)
+                st.text_area("Texto extraído:", text_content)
+                st.download_button(label="Descargar como TXT", data=text_content, file_name="pdf_to_text.txt", mime="text/plain")
+            else:
+                st.error("Sube un archivo PDF.")
 
 if __name__ == "__main__":
     main()
